@@ -39,6 +39,7 @@ def login_required(test):
     return wrap
 
 @app.route('/logout/')
+@login_required
 def logout():
     session.pop('logged_in', None)
     session.pop('user_id', None)
@@ -59,8 +60,6 @@ def login():
                 return redirect(url_for('tasks'))
             else:
                 error = 'Invalid username or password.'
-        else:
-            error = 'Both fields are required.'
     return render_template('login.html', form=form, error=error)
 
 @app.route('/tasks/')
@@ -100,24 +99,22 @@ def new_task():
         closed_tasks=closed_tasks()
     )
 
-@app.route('/app.route/<int:task_id>/')
+@app.route('/complete/<int:task_id>/')
 @login_required
 def complete(task_id):
     new_id = task_id
-    name = db.session.query(Task).filter_by(task_id=new_id).first().name
     db.session.query(Task).filter_by(task_id=new_id).update({"status": "0"})
     db.session.commit()
-    flash('Task \'' + name + '\' marked as complete.')
+    flash('The task is complete.')
     return redirect(url_for('tasks'))
 
 @app.route('/delete/<int:task_id>/')
 @login_required
 def delete_entry(task_id):
     new_id = task_id
-    name = db.session.query(Task).filter_by(task_id=new_id).first().name
     db.session.query(Task).filter_by(task_id=new_id).delete()
     db.session.commit()
-    flash('Task \'' + name + '\' was deleted.')
+    flash('The task was deleted.')
     return redirect(url_for('tasks'))
 
 @app.route('/register/', methods=['GET', 'POST'])
